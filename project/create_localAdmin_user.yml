@@ -1,6 +1,6 @@
 ---
 - name: Create a new user with a hashed password
-  hosts: your_target_hosts
+  hosts: all
   become: yes # Use become to run tasks with elevated privileges
   tasks:
     - name: Ensure the user 'newuser' exists with a hashed password
@@ -10,6 +10,6 @@
         state: present
         update_password: on_create # Only set the password when the user is created
         shell: /bin/bash # Optional: Set the user's default shell
-        home: /home/newuser # Optional: Set the user's home directory
+        home: /home/localadmin # Optional: Set the user's home directory
 
  
