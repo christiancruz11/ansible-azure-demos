@@ -132,3 +132,7 @@
           publisher: center-for-internet-security-inc
           sku: cis-redhat8-l2-gen2
           version: latest
+        plan:
+          name: cis-redhat8-l2-gen2
+          product: cis-rhel
+          publisher: center-for-internet-security-inc
