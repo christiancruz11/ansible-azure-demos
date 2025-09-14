@@ -128,7 +128,7 @@
           "os": "linux"
           "username": "{{ rhel_admin_user }}"
         image:
-          offer: RHEL
-          publisher: RedHat
-          sku: "{{ rhel_vm_sku }}"
+          offer: cis-rhel
+          publisher: center-for-internet-security-inc
+          sku: cis-redhat8-l2-gen2
           version: latest
