@@ -88,4 +88,4 @@
             public_ip_address:
               id: "/subscriptions/{{ azure_subscription_id }}/resourceGroups/{{ resource_group_name }}/providers/Microsoft.Network/publicIPAddresses/{{ public_ip_name }}"
         state: present
-        when: bastion_info.response | length == 0
+      when: bastion_info.response | length == 0
