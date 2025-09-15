@@ -63,6 +63,11 @@
         msg: "Azure Bastion exists!"
       when: bastion_info.response | length > 0
 
+    - name: Debug Bastion does not exist
+      debug:
+        msg: "Azure Bastion does NOT exist!"
+      when: bastion_info.response | length == 0
+
     - name: Create Azure Bastion Host
       azure.azcollection.azure_rm_bastionhost:
         resource_group: "{{ resource_group_name }}"
@@ -83,3 +88,4 @@
             public_ip_address:
               id: "/subscriptions/{{ azure_subscription_id }}/resourceGroups/{{ resource_group_name }}/providers/Microsoft.Network/publicIPAddresses/{{ public_ip_name }}"
         state: present
+        when: bastion_info.response | length == 0
