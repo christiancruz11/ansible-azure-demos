@@ -3,7 +3,7 @@
   hosts: bastion_hosts
   become: true # Run tasks with sudo privileges
   vars:
-    bastion_user: "localadmin"
+    bastion_user: "localhost"
     bastion_key_path: "~/.ssh/id_rsa_bastion" # Path to the private key for the bastion host
     target_hosts_key_path: "~/.ssh/id_rsa_target_hosts.pub" # Path to the public key for target hosts
 
