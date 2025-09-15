@@ -1,0 +1,14 @@
+---
+- name: Change MOTD to Match motd.txt
+  hosts: localhost
+  connection: local
+  become: true
+
+  tasks:
+    - name: Motd Template
+      ansible.builtin.template:
+        src: motd.txt
+        dest: /etc/motd
+        owner: root
+        group: root
+        mode: '0644'
