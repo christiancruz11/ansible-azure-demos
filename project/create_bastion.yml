@@ -54,7 +54,14 @@
         resource_group: "{{ resource_group_name }}"
         name: "{{ bastion_host_name }}"
         location: "{{ location }}"
-        sku: "{{ bastion_sku }}"
+        sku: 
+          name: "{{ bastion_sku }}"
+        enable_tunneling: false
+        enable_shareable_link: false
+        enable_ip_connect: false
+        enable_file_copy: false
+        scale_units: 6
+        disable_copy_paste: false
         ip_configurations:
           - name: "ipconfig1"
             subnet:
