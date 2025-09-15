@@ -1,0 +1,6 @@
+- name: Failure
+  hosts: localhost
+  tasks:
+    - name: Message
+      debug:
+        msg: "Change Denied"
