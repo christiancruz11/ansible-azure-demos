@@ -1,7 +1,6 @@
 ---
 - name: Change MOTD to Match motd.txt
   hosts: all
-  connection: local
   become: true
 
   tasks:
@@ -14,7 +13,7 @@
     #     var: sshd
 
     # - name: Ensure PrintMotd is set to yes in sshd_config
-    #   ansible.builtin.replace:
+    #   ansible.builtin.replace:ßßß
     #     path: /etc/ssh/sshd_config
     #     regexp: '^?PrintMotd'
     #     replace: 'PrintMotd yes'
