@@ -33,7 +33,7 @@
    #     state: present
 
     - name: Create Azure Bastion Subnet
-      azure_rm_subnet:
+      azure.azcollection.azure_rm_subnet:
         resource_group: "{{ resource_group_name }}"
         virtual_network_name: "{{ vnet_name }}"
         name: "{{ bastion_subnet_name }}"
@@ -41,7 +41,7 @@
         state: present
 
     - name: Create Azure Public IP for Bastion
-      azure_rm_publicipaddress:
+      azure.azcollection.azure_rm_publicipaddress:
         resource_group: "{{ resource_group_name }}"
         name: "{{ public_ip_name }}"
         location: "{{ location }}"
