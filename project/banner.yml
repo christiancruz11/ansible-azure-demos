@@ -23,7 +23,7 @@
       ansible.builtin.lineinfile:
         path: /etc/ssh/sshd_config
         state: present
-        regexp: '^?#PrintMotd'
+        regexp: '^?PrintMotd'
         line: 'PrintMotd yes'
       notify: restart sshd
 
