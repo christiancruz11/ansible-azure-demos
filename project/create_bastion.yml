@@ -1,73 +1,64 @@
 ---
-- name: Setup Bastion Host
-  hosts: bastion_hosts
-  become: true # Run tasks with sudo privileges
+- name: Deploy Azure Bastion Host
+  hosts: localhost
+  connection: local
+  gather_facts: false
+
   vars:
-    bastion_user: "localhost"
-    bastion_key_path: "~/.ssh/id_rsa_bastion" # Path to the private key for the bastion host
-    target_hosts_key_path: "~/.ssh/id_rsa_target_hosts.pub" # Path to the public key for target hosts
+    resource_group_name: "cc_ansible_test"
+    location: "eastus" # Choose your desired Azure region
+    vnet_name: "demo_vnet"
+    vnet_address_prefix: "10.0.0.0/16"
+    bastion_subnet_name: "AzureBastionSubnet"
+    bastion_subnet_address_prefix: "10.0.2.0/24"
+    public_ip_name: "rehl8PublicIP"
+    bastion_host_name: "rehel8BastionHost"
+    bastion_sku: "Standard"
+    azure_subscription_id: "a6146403-3256-4e07-8d93-2574db310783"
 
   tasks:
-    - name: Ensure required packages are installed
-      ansible.builtin.apt:
-        name:
-          - openssh-server
-          - fail2ban
-        state: present
-        update_cache: true
+    #- name: Create Azure Resource Group
+    #  azure_rm_resourcegroup:
+    #    name: "{{ resource_group_name }}"
+    #    location: "{{ location }}"
+    #    state: present
 
-    - name: Create bastion user
-      ansible.builtin.user:
-        name: "{{ bastion_user }}"
-        state: present
-        create_home: true
-        shell: /bin/bash
+   # - name: Create Azure Virtual Network
+   #   azure_rm_virtualnetwork:
+   #     resource_group: "{{ resource_group_name }}"
+   #     name: "{{ vnet_name }}"
+   #     address_prefixes:
+   #       - "{{ vnet_address_prefix }}"
+   #     location: "{{ location }}"
+   #     state: present
 
-    - name: Ensure .ssh directory exists for bastion user
-      ansible.builtin.file:
-        path: "/home/{{ bastion_user }}/.ssh"
-        state: directory
-        mode: '0700'
-        owner: "{{ bastion_user }}"
-        group: "{{ bastion_user }}"
-
-    - name: Add authorized key for bastion user
-      ansible.builtin.authorized_key:
-        user: "{{ bastion_user }}"
-        key: "{{ lookup('file', bastion_key_path + '.pub') }}"
+    - name: Create Azure Bastion Subnet
+      azure_rm_subnet:
+        resource_group: "{{ resource_group_name }}"
+        virtual_network_name: "{{ vnet_name }}"
+        name: "{{ bastion_subnet_name }}"
+        address_prefix: "{{ bastion_subnet_address_prefix }}"
         state: present
 
-    - name: Copy public key for target hosts to bastion
-      ansible.builtin.copy:
-        src: "{{ target_hosts_key_path }}"
-        dest: "/home/{{ bastion_user }}/.ssh/id_rsa_target_hosts.pub"
-        owner: "{{ bastion_user }}"
-        group: "{{ bastion_user }}"
-        mode: '0644'
-
-    - name: Configure SSH daemon for security
-      ansible.builtin.lineinfile:
-        path: /etc/ssh/sshd_config
-        regexp: "{{ item.regexp }}"
-        line: "{{ item.line }}"
+    - name: Create Azure Public IP for Bastion
+      azure_rm_publicipaddress:
+        resource_group: "{{ resource_group_name }}"
+        name: "{{ public_ip_name }}"
+        location: "{{ location }}"
+        allocation_method: Static
+        sku: Standard # Bastion requires Standard SKU for Public IP
         state: present
-      loop:
-        - { regexp: '^PermitRootLogin', line: 'PermitRootLogin no' }
-        - { regexp: '^PasswordAuthentication', line: 'PasswordAuthentication no' }
-        - { regexp: '^ChallengeResponseAuthentication', line: 'ChallengeResponseAuthentication no' }
-        - { regexp: '^UsePAM', line: 'UsePAM no' }
-      notify: Restart sshd
 
-    - name: Ensure SSH key forwarding is enabled (optional, for accessing target hosts)
-      ansible.builtin.lineinfile:
-        path: /etc/ssh/sshd_config
-        regexp: '^AllowAgentForwarding'
-        line: 'AllowAgentForwarding yes'
+    - name: Create Azure Bastion Host
+      azure_rm_bastionhost:
+        resource_group: "{{ resource_group_name }}"
+        name: "{{ bastion_host_name }}"
+        location: "{{ location }}"
+        sku: "{{ bastion_sku }}"
+        ip_configurations:
+          - name: "ipconfig1"
+            subnet:
+              id: "/subscriptions/{{ azure_subscription_id }}/resourceGroups/{{ resource_group_name }}/providers/Microsoft.Network/virtualNetworks/{{ vnet_name }}/subnets/{{ bastion_subnet_name }}"
+            public_ip_address:
+              id: "/subscriptions/{{ azure_subscription_id }}/resourceGroups/{{ resource_group_name }}/providers/Microsoft.Network/publicIPAddresses/{{ public_ip_name }}"
         state: present
-      notify: Restart sshd
-
-  handlers:
-    - name: Restart sshd
-      ansible.builtin.service:
-        name: sshd
-        state: restarted
