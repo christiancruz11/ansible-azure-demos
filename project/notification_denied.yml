@@ -1,6 +1,6 @@
-- name: Failure
+- name: Workflow Denied
   hosts: localhost
   tasks:
     - name: Message
       debug:
-        msg: "Workflow failed"
+        msg: "Change Denied"
