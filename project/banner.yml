@@ -4,20 +4,6 @@
   become: true
 
   tasks:
-    # - name: Execute the command in remote shell; stdout goes to the specified file on the remote
-    #   ansible.builtin.shell: 'cat /etc/ssh/sshd_config'
-    #   register: sshd
-
-    # - name: Cat SSHD
-    #   debug:
-    #     var: sshd
-
-    # - name: Ensure PrintMotd is set to yes in sshd_config
-    #   ansible.builtin.replace:ßßß
-    #     path: /etc/ssh/sshd_config
-    #     regexp: '^?PrintMotd'
-    #     replace: 'PrintMotd yes'
-    #   notify: restart sshd
 
     - name: Ensure PrintMotd is set to yes in sshd_config
       ansible.builtin.lineinfile:
