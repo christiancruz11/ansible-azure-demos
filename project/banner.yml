@@ -5,6 +5,15 @@
   become: true
 
   tasks:
+
+    - name: Ensure PrintMotd is set to yes in sshd_config
+      ansible.builtin.lineinfile:
+        path: /etc/ssh/sshd_config
+        regexp: '^#?PrintMotd'
+        line: 'PrintMotd yes'
+        state: present
+      notify: restart sshd
+
     - name: Motd Template
       ansible.builtin.template:
         src: motd.txt
@@ -12,3 +21,9 @@
         owner: root
         group: root
         mode: '0644'
+
+  handlers:
+    - name: restart sshd
+      ansible.builtin.service:
+        name: sshd
+        state: restarted
