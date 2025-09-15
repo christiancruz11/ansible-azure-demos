@@ -1,0 +1,6 @@
+- name: Successful
+  hosts: localhost
+  tasks:
+    - name: Message
+      debug:
+        msg: "Successful VM deployment"
