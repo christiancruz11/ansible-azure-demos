@@ -1,0 +1,73 @@
+---
+- name: Setup Bastion Host
+  hosts: bastion_hosts
+  become: true # Run tasks with sudo privileges
+  vars:
+    bastion_user: "localadmin"
+    bastion_key_path: "~/.ssh/id_rsa_bastion" # Path to the private key for the bastion host
+    target_hosts_key_path: "~/.ssh/id_rsa_target_hosts.pub" # Path to the public key for target hosts
+
+  tasks:
+    - name: Ensure required packages are installed
+      ansible.builtin.apt:
+        name:
+          - openssh-server
+          - fail2ban
+        state: present
+        update_cache: true
+
+    - name: Create bastion user
+      ansible.builtin.user:
+        name: "{{ bastion_user }}"
+        state: present
+        create_home: true
+        shell: /bin/bash
+
+    - name: Ensure .ssh directory exists for bastion user
+      ansible.builtin.file:
+        path: "/home/{{ bastion_user }}/.ssh"
+        state: directory
+        mode: '0700'
+        owner: "{{ bastion_user }}"
+        group: "{{ bastion_user }}"
+
+    - name: Add authorized key for bastion user
+      ansible.builtin.authorized_key:
+        user: "{{ bastion_user }}"
+        key: "{{ lookup('file', bastion_key_path + '.pub') }}"
+        state: present
+
+    - name: Copy public key for target hosts to bastion
+      ansible.builtin.copy:
+        src: "{{ target_hosts_key_path }}"
+        dest: "/home/{{ bastion_user }}/.ssh/id_rsa_target_hosts.pub"
+        owner: "{{ bastion_user }}"
+        group: "{{ bastion_user }}"
+        mode: '0644'
+
+    - name: Configure SSH daemon for security
+      ansible.builtin.lineinfile:
+        path: /etc/ssh/sshd_config
+        regexp: "{{ item.regexp }}"
+        line: "{{ item.line }}"
+        state: present
+      loop:
+        - { regexp: '^PermitRootLogin', line: 'PermitRootLogin no' }
+        - { regexp: '^PasswordAuthentication', line: 'PasswordAuthentication no' }
+        - { regexp: '^ChallengeResponseAuthentication', line: 'ChallengeResponseAuthentication no' }
+        - { regexp: '^UsePAM', line: 'UsePAM no' }
+      notify: Restart sshd
+
+    - name: Ensure SSH key forwarding is enabled (optional, for accessing target hosts)
+      ansible.builtin.lineinfile:
+        path: /etc/ssh/sshd_config
+        regexp: '^AllowAgentForwarding'
+        line: 'AllowAgentForwarding yes'
+        state: present
+      notify: Restart sshd
+
+  handlers:
+    - name: Restart sshd
+      ansible.builtin.service:
+        name: sshd
+        state: restarted
